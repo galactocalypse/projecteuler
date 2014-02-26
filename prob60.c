@@ -11,7 +11,19 @@
 
 	Just in case it is required again, I'm retaining the file out60 which contains all pairs. Generating them takes about 67 seconds. Might not want to wait that long every time.
 	
+	Results:
+	Generated sieve of 3246 primes in 0.000s
+	Generated 93204 pairs in 68.890s
+	7 1237 2341 12409 18433
+	13 5197 5701 6733 8389
+	467 941 2099 19793 25253
+	Minimal sum: 26033 calculated in 2.380s
+
+	Note:
+	For some weird reason, no solution is found when the pairs are generated directly. If they are written to and read from a file, instead, everything works fine. Need to fix that.
+
 */
+
 #include<stdio.h>
 #include<math.h>
 #include<string.h>
@@ -35,8 +47,6 @@ int binsearch(int, int, int);
 int isp(long long);
 void printarr(int *, int);
 int findlowest(int, int, int);
-int findhighest(int, int, int);
-int pairbinsearch(int, int, int);
 int ispair(int, int);
 void findgroups();
 
@@ -45,17 +55,13 @@ typedef struct pair{
 	int b;
 } pair;
 
-int g[5];
-int sols = 0;
-int p[LIM];
-int primes;
-pair pp[PLIM];
-long long pairs;
+char *pairfile = "out60";
+int g[5] = {0};
+int p[LIM] = {0};
+int primes = 0;
+pair pp[PLIM] = {0};
+long long pairs = 0;
 int sum = 0;
-
-int cmp(const void *a, const void *b){
-	return *(int*)a - *(int*)b;
-}
 
 int sod(int n){
 	int s = 0;
@@ -64,26 +70,6 @@ int sod(int n){
 		n /= 10;
 	}
 	return s;
-}
-
-void genpairs(){
-	int i, j;
-	pairs = 0;
-	rep(i, 0, primes){
-		rep(j, i+1, primes){
-			if((sod(p[i])+sod(p[j]))%3 == 0)continue;
-			if(checkpair(p[i], p[j]) == 1){
-				pp[pairs].a = i;
-				pp[pairs].a = j;
-				printf("%d %d\n", i, j);	
-				pairs++;
-				if(pairs == PLIM){
-					printf("Exceeded limits!\n");
-					return;
-				}
-			}
-		}
-	}
 }
 
 int nod(int n){
@@ -97,6 +83,25 @@ int checkpair(int a, int b){
 	n = b*pow(10, nod(a))+a;
 	//printf("Checking %lld and %lld: %d %d\n", m, n, isp(m), isp(n));
 	return (isp(m) && isp(n));
+}
+
+void genpairs(){
+	int i, j;
+	pairs = 0;
+	rep(i, 0, primes){
+		rep(j, i+1, primes){
+			if((sod(p[i])+sod(p[j]))%3 == 0)// prelim checks just to hurry things up
+				continue;
+			if(checkpair(p[i], p[j]) == 1){
+				pp[pairs].a = i;
+				pp[pairs].a = j;
+				pairs++;
+				if(pairs == PLIM){
+					return;
+				}
+			}
+		}
+	}
 }
 
 void sieve(){
@@ -162,17 +167,6 @@ int findlowest(int l, int h, int s){
 	return -1;
 }
 
-int findhighest(int l, int h, int s){
-	//find lowest index such that pp[i].a == s
-	int mid = (l+h)/2;
-	if(l > h)return -1;
-	if(s == pp[l].a)return l;
-	if(s > pp[mid].a)return findlowest(mid+1, h, s);
-	if(s <= pp[mid].a)return findlowest(l, mid-1, s);
-}
-
-
-
 int ispair(int a, int b){
 	/* a and b are indices */
 	int s, e;
@@ -222,10 +216,36 @@ void checkfrom(int a){// generate solution starting with index i
 
 void findgroups(){
 	int i;
+	sum = 0;
 	for(i = 0; i < primes; i++){
 		if(sum && sum < 5*p[i])break;
 		checkfrom(i);
 	}
+}
+
+int writepairstofile(char *fn){
+	FILE *fp;
+	int i;
+	if(fp == NULL || !pairs)return 0;
+	fp = fopen(fn, "w");
+	rep(i, 0, pairs)
+		fprintf(fp, "%d %d\n", pp[i].a, pp[i].b);
+	fclose(fp);
+	return 1;
+}
+
+int readpairsfromfile(char *fn){
+	FILE *fp;
+	int i = 0;
+	fp = fopen(fn, "r");
+	if(fp == NULL)return 0;
+	pairs = 0;
+	while(fscanf(fp, "%d %d", &pp[i].a, &pp[i].b) == 2)
+		i++;
+	pairs = i;
+	if(!pairs)return 0;
+	fclose(fp);	
+	return 1;
 }
 
 int main(int argc, char **argv){
@@ -233,37 +253,30 @@ int main(int argc, char **argv){
 	int a, b, i, x, j, c, d, e;
 	double t;
 	clock_t ss, ee;
+	
 	ss = clock();
 	sieve();
-	/*
 	ee = clock();
 	printf("Generated sieve of %d primes in %.3lfs\n", primes, (double)(ee-ss)/CLOCKS_PER_SEC);
 	
-	ss = clock();	
-	*/
-	genpairs();
-	/*
+	ss = clock();
+	if(!readpairsfromfile(pairfile)){
+		genpairs();
+		writepairstofile(pairfile);
+		if(!readpairsfromfile(pairfile)){
+			printf("Cannot write to file %s. Terminating program.\n", pairfile);
+			return 0;
+		}
+		
+	}
+	
 	ee = clock();
 	printf("Generated %lld pairs in %.3lfs\n", pairs, (double)(ee - ss)/CLOCKS_PER_SEC);
-	*/
 	
-	/*
-	If reading from out60 instead of using genpairs(), uncomment this block
-
-	pairs = 0;
-	fp = fopen("out60", "r");
-	rep(i, 0, 93205){
-		fscanf(fp, "%d %d", &pp[i].a, &pp[i].b);
-	}
-	pairs = i;
-
-	*/
-	
-	//ss = clock();
+	ss = clock();
 	findgroups();
-	//ee = clock();
-	//printf("Minimal sum: %d calculated in %lfs\n", sum, (double)(ee-ss)/CLOCKS_PER_SEC);
-	printf("%d\n", sum);
+	ee = clock();
+	printf("Minimal sum: %d calculated in %.3lfs\n", sum, (double)(ee-ss)/CLOCKS_PER_SEC);
 	return 0;
 }
 
