@@ -8,7 +8,15 @@
 # 	2.65023303032 seconds to generate
 # 	28684
 # 	0.000972032546997 seconds to process
+#
 # Now, might want to tidy up this code.
+#
+# Final results:
+#	Init in 0.00103807449341 s
+#	Gen in 1.34307384491 s
+#	Computed in  0.00601291656494 s
+#	28684
+# The increasing in processing time is probably because of the numerous method calls and list functions.
 
 import time
 
