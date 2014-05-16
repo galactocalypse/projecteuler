@@ -8,6 +8,8 @@
 	Output:
 	402
 	76.852ms
+	
+	Alright, it's only faster than the MathBlog solution because of the language. The same solution in C# took about 225ms. MathBlog wins. :P
 
 */
 #include<iostream>
