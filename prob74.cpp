@@ -7,6 +7,8 @@
 	402
 	16.2342s
 	
+	Need. To. Make. This. Faster.
+	
 */
 #include<iostream>
 #include<cstdio>
@@ -66,6 +68,18 @@ int findlength(int n){
 	}
 	while(1);
 	return s.size();
+}
+
+int len[1000001];
+int ___main(){
+	int lim = 1000000;
+	int ctr = 0;
+	for(int i = 1; i < l; i++){
+		while()
+	
+	}
+	cout << ctr << endl;
+	return 0;
 }
 
 int main(int argc, char** argv){

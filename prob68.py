@@ -8,6 +8,7 @@ for i in range(1, 11):
 c = 0
 g = []
 r = []
+
 for p in permutations(a):
 	s = [[p[0], p[1], p[2]],
 		[p[3], p[2], p[4]],
